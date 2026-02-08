@@ -6,8 +6,8 @@ import (
 	"runtime"
 	"strings"
 
-	"github.com/porthog/porthog/internal/core/domain"
-	"github.com/porthog/porthog/internal/core/ports"
+	"github.com/z1j1e/porthog/internal/core/domain"
+	"github.com/z1j1e/porthog/internal/core/ports"
 )
 
 var criticalPIDs = map[int32]bool{0: true, 1: true}

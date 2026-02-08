@@ -11,7 +11,7 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/porthog/porthog/internal/core/domain"
+	"github.com/z1j1e/porthog/internal/core/domain"
 )
 
 // Enumerator implements port enumeration on macOS via lsof.

@@ -6,7 +6,7 @@ import (
 	"github.com/charmbracelet/bubbles/key"
 	tea "github.com/charmbracelet/bubbletea"
 
-	"github.com/porthog/porthog/internal/core/domain"
+	"github.com/z1j1e/porthog/internal/core/domain"
 )
 
 func (m Model) Update(msg tea.Msg) (tea.Model, tea.Cmd) {

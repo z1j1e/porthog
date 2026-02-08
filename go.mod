@@ -1,4 +1,4 @@
-module github.com/porthog/porthog
+module github.com/z1j1e/porthog
 
 go 1.25.7
 

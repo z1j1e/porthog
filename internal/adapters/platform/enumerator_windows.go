@@ -3,8 +3,8 @@
 package platform
 
 import (
-	winEnum "github.com/porthog/porthog/internal/adapters/os/windows"
-	"github.com/porthog/porthog/internal/core/ports"
+	winEnum "github.com/z1j1e/porthog/internal/adapters/os/windows"
+	"github.com/z1j1e/porthog/internal/core/ports"
 )
 
 // NewEnumerator returns the platform-specific port enumerator.

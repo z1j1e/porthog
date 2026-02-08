@@ -15,12 +15,12 @@ Cross-platform port management CLI — find what's hogging your ports.
 
 **Go install:**
 ```bash
-go install github.com/porthog/porthog/cmd/porthog@latest
+go install github.com/z1j1e/porthog/cmd/porthog@latest
 ```
 
 **Shell script (Linux/macOS):**
 ```bash
-curl -sSL https://raw.githubusercontent.com/porthog/porthog/main/install.sh | sh
+curl -sSL https://raw.githubusercontent.com/z1j1e/porthog/main/install.sh | sh
 ```
 
 **Scoop (Windows):**

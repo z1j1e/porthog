@@ -6,7 +6,7 @@ import (
 
 	"github.com/mattn/go-isatty"
 
-	"github.com/porthog/porthog/internal/core/domain"
+	"github.com/z1j1e/porthog/internal/core/domain"
 )
 
 // Format represents an output format.

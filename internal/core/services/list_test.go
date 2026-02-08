@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/porthog/porthog/internal/core/domain"
-	"github.com/porthog/porthog/internal/core/ports"
-	"github.com/porthog/porthog/internal/core/services"
+	"github.com/z1j1e/porthog/internal/core/domain"
+	"github.com/z1j1e/porthog/internal/core/ports"
+	"github.com/z1j1e/porthog/internal/core/services"
 )
 
 // --- Fake adapters ---

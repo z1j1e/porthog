@@ -3,7 +3,7 @@ package output
 import (
 	"fmt"
 
-	"github.com/porthog/porthog/internal/core/domain"
+	"github.com/z1j1e/porthog/internal/core/domain"
 )
 
 func (r *Renderer) renderPlain(bindings []domain.PortBinding) error {

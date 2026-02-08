@@ -3,7 +3,7 @@ package ports
 import (
 	"context"
 
-	"github.com/porthog/porthog/internal/core/domain"
+	"github.com/z1j1e/porthog/internal/core/domain"
 )
 
 // Enumerator lists network port bindings from the operating system.

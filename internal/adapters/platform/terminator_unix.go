@@ -8,7 +8,7 @@ import (
 	"syscall"
 	"time"
 
-	"github.com/porthog/porthog/internal/core/ports"
+	"github.com/z1j1e/porthog/internal/core/ports"
 )
 
 type unixTerminator struct{}

@@ -6,8 +6,8 @@ import (
 	"net"
 	"testing"
 
-	"github.com/porthog/porthog/internal/adapters/output"
-	"github.com/porthog/porthog/internal/core/domain"
+	"github.com/z1j1e/porthog/internal/adapters/output"
+	"github.com/z1j1e/porthog/internal/core/domain"
 )
 
 func TestJSONOutput_Schema(t *testing.T) {

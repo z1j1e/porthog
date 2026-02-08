@@ -5,9 +5,9 @@ import (
 
 	"github.com/charmbracelet/bubbles/textinput"
 
-	"github.com/porthog/porthog/internal/core/domain"
-	"github.com/porthog/porthog/internal/core/ports"
-	"github.com/porthog/porthog/internal/core/services"
+	"github.com/z1j1e/porthog/internal/core/domain"
+	"github.com/z1j1e/porthog/internal/core/ports"
+	"github.com/z1j1e/porthog/internal/core/services"
 )
 
 type tickMsg time.Time

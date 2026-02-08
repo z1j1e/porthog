@@ -1,7 +1,7 @@
 #!/bin/sh
 set -e
 
-REPO="porthog/porthog"
+REPO="z1j1e/porthog"
 INSTALL_DIR="${INSTALL_DIR:-/usr/local/bin}"
 
 OS=$(uname -s | tr '[:upper:]' '[:lower:]')

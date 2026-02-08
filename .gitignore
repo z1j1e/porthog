@@ -4,9 +4,9 @@
 *.dll
 *.so
 *.dylib
-porthog
-porthog-linux
-porthog-darwin
+/porthog
+/porthog-linux
+/porthog-darwin
 
 # Test binary
 *.test

@@ -4,9 +4,9 @@ import (
 	"context"
 	"testing"
 
-	"github.com/porthog/porthog/internal/adapters/platform"
-	"github.com/porthog/porthog/internal/adapters/process"
-	"github.com/porthog/porthog/internal/core/services"
+	"github.com/z1j1e/porthog/internal/adapters/platform"
+	"github.com/z1j1e/porthog/internal/adapters/process"
+	"github.com/z1j1e/porthog/internal/core/services"
 )
 
 func BenchmarkListPorts(b *testing.B) {

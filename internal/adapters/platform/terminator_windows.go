@@ -7,7 +7,7 @@ import (
 	"os"
 	"time"
 
-	"github.com/porthog/porthog/internal/core/ports"
+	"github.com/z1j1e/porthog/internal/core/ports"
 )
 
 type winTerminator struct{}
