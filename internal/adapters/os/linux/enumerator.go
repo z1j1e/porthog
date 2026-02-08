@@ -46,7 +46,6 @@ func (e *Enumerator) List(ctx context.Context, filter *domain.Filter) (*domain.P
 		udp, err := enumNetlink(unix.IPPROTO_UDP)
 		if err != nil {
 			udp, err = parseProcNet("/proc/net/udp", domain.UDP)
-// PLACEHOLDER_LIST_CONT
 			if err != nil {
 				warnings = append(warnings, "UDP enumeration failed: "+err.Error())
 			}
@@ -81,32 +80,57 @@ func enumNetlink(proto uint8) ([]domain.PortBinding, error) {
 		return nil, err
 	}
 
-	var bindings []domain.PortBinding
+	type bindingWithInode struct {
+		binding domain.PortBinding
+		inode   uint64
+	}
+	var entries []bindingWithInode
 	buf := make([]byte, 65536)
 	for {
 		n, _, err := unix.Recvfrom(fd, buf, 0)
 		if err != nil {
-			return bindings, err
+			break
 		}
 		msgs, err := syscall.ParseNetlinkMessage(buf[:n])
 		if err != nil {
-			return bindings, fmt.Errorf("parse netlink: %w", err)
+			break
 		}
+		done := false
 		for _, msg := range msgs {
 			if msg.Header.Type == syscall.NLMSG_DONE {
-				return bindings, nil
+				done = true
+				break
 			}
 			if msg.Header.Type == syscall.NLMSG_ERROR {
 				return nil, fmt.Errorf("netlink error response")
 			}
-			if len(msg.Data) >= 26 {
-				b := parseInetDiagMsg(msg.Data, proto)
-				bindings = append(bindings, b)
+			if len(msg.Data) >= 72 {
+				b, ino := parseInetDiagMsg(msg.Data, proto)
+				entries = append(entries, bindingWithInode{binding: b, inode: ino})
 			}
 		}
+		if done {
+			break
+		}
 	}
+
+	// Batch-map socket inodes to PIDs via /proc/<pid>/fd
+	inodes := make([]uint64, len(entries))
+	for i, e := range entries {
+		inodes[i] = e.inode
+	}
+	inodePIDMap := mapInodesToPIDs(inodes)
+
+	bindings := make([]domain.PortBinding, len(entries))
+	for i, e := range entries {
+		b := e.binding
+		if pid, ok := inodePIDMap[e.inode]; ok {
+			b.PID = pid
+		}
+		bindings[i] = b
+	}
+	return bindings, nil
 }
-// PLACEHOLDER_LINUX_BUILD_REQ
 
 func buildInetDiagReq(proto uint8) []byte {
 	const hdrLen = 16
@@ -121,7 +145,7 @@ func buildInetDiagReq(proto uint8) []byte {
 	return buf
 }
 
-func parseInetDiagMsg(data []byte, proto uint8) domain.PortBinding {
+func parseInetDiagMsg(data []byte, proto uint8) (domain.PortBinding, uint64) {
 	p := domain.TCP
 	if proto == unix.IPPROTO_UDP {
 		p = domain.UDP
@@ -129,7 +153,10 @@ func parseInetDiagMsg(data []byte, proto uint8) domain.PortBinding {
 	// inet_diag_msg layout:
 	// [0] family, [1] state, [2] timer, [3] retrans
 	// [4-5] sport (big-endian), [6-7] dport (big-endian)
-	// [8-11] src IP, [24-27] dst IP
+	// [8-23] src IP (4 x uint32), [24-39] dst IP (4 x uint32)
+	// [40-43] interface, [44-51] cookie
+	// [52-55] expires, [56-59] rqueue, [60-63] wqueue
+	// [64-67] uid, [68-71] inode
 	state := data[1]
 	srcPort := binary.BigEndian.Uint16(data[4:6])
 	dstPort := binary.BigEndian.Uint16(data[6:8])
@@ -137,11 +164,12 @@ func parseInetDiagMsg(data []byte, proto uint8) domain.PortBinding {
 	copy(srcIP, data[8:12])
 	dstIP := net.IP(make([]byte, 4))
 	copy(dstIP, data[24:28])
+	inode := binary.LittleEndian.Uint32(data[68:72])
 	return domain.PortBinding{
 		Protocol: p, LocalIP: srcIP, LocalPort: srcPort,
 		RemoteIP: dstIP, RemotePort: dstPort,
 		State: mapLinuxState(state),
-	}
+	}, uint64(inode)
 }
 
 func parseProcNet(path string, proto domain.Protocol) ([]domain.PortBinding, error) {
@@ -151,7 +179,11 @@ func parseProcNet(path string, proto domain.Protocol) ([]domain.PortBinding, err
 	}
 	defer f.Close()
 
-	var bindings []domain.PortBinding
+	type entryWithInode struct {
+		binding domain.PortBinding
+		inode   uint64
+	}
+	var entries []entryWithInode
 	scanner := bufio.NewScanner(f)
 	scanner.Scan() // skip header
 	for scanner.Scan() {
@@ -162,14 +194,36 @@ func parseProcNet(path string, proto domain.Protocol) ([]domain.PortBinding, err
 		localIP, localPort := parseHexAddr(fields[1])
 		remoteIP, remotePort := parseHexAddr(fields[2])
 		st, _ := strconv.ParseUint(fields[3], 16, 8)
-// PLACEHOLDER_PROC_CONT
-		bindings = append(bindings, domain.PortBinding{
-			Protocol: proto, LocalIP: localIP, LocalPort: localPort,
-			RemoteIP: remoteIP, RemotePort: remotePort,
-			State: mapLinuxState(uint8(st)),
+		inode, _ := strconv.ParseUint(fields[9], 10, 64)
+		entries = append(entries, entryWithInode{
+			binding: domain.PortBinding{
+				Protocol: proto, LocalIP: localIP, LocalPort: localPort,
+				RemoteIP: remoteIP, RemotePort: remotePort,
+				State: mapLinuxState(uint8(st)),
+			},
+			inode: inode,
 		})
 	}
-	return bindings, scanner.Err()
+	if err := scanner.Err(); err != nil {
+		return nil, err
+	}
+
+	// Batch-map inodes to PIDs
+	inodes := make([]uint64, len(entries))
+	for i, e := range entries {
+		inodes[i] = e.inode
+	}
+	inodePIDMap := mapInodesToPIDs(inodes)
+
+	bindings := make([]domain.PortBinding, len(entries))
+	for i, e := range entries {
+		b := e.binding
+		if pid, ok := inodePIDMap[e.inode]; ok {
+			b.PID = pid
+		}
+		bindings[i] = b
+	}
+	return bindings, nil
 }
 
 func parseHexAddr(s string) (net.IP, uint16) {
