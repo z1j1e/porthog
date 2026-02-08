@@ -7,6 +7,29 @@
 
 Cross-platform port management CLI — find what's hogging your ports.
 
+<!-- Demo GIF: run `vhs demo.tape` to regenerate -->
+<!-- ![demo](demo.gif) -->
+
+## Quick Demo
+
+```
+$ porthog list --tcp
+PROTO  LOCAL ADDRESS     PID     PROCESS       USER            STATE
+──────────────────────────────────────────────────────────────────────
+TCP    0.0.0.0:80        1234    nginx         www-data        LISTEN
+TCP    0.0.0.0:443       1234    nginx         www-data        LISTEN
+TCP    127.0.0.1:5432    5678    postgres      postgres        LISTEN
+TCP    0.0.0.0:3000      9012    node          developer       LISTEN
+
+$ porthog free --range 8000-9000 --count 3
+8000
+8001
+8002
+
+$ porthog kill 3000 --dry-run
+[dry-run] would terminate PID 9012 (node) on port 3000
+```
+
 ## Features
 
 - **List** listening ports with process info (PID, name, user)
