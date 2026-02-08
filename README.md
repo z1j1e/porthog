@@ -1,5 +1,10 @@
 # porthog
 
+[![CI](https://github.com/z1j1e/porthog/actions/workflows/ci.yml/badge.svg)](https://github.com/z1j1e/porthog/actions/workflows/ci.yml)
+[![Go Version](https://img.shields.io/github/go-mod/go-version/z1j1e/porthog)](https://go.dev/)
+[![Release](https://img.shields.io/github/v/release/z1j1e/porthog)](https://github.com/z1j1e/porthog/releases)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](LICENSE)
+
 Cross-platform port management CLI — find what's hogging your ports.
 
 ## Features
@@ -21,6 +26,11 @@ go install github.com/z1j1e/porthog/cmd/porthog@latest
 **Shell script (Linux/macOS):**
 ```bash
 curl -sSL https://raw.githubusercontent.com/z1j1e/porthog/main/install.sh | sh
+```
+
+**Homebrew (macOS/Linux):**
+```bash
+brew install z1j1e/porthog/porthog
 ```
 
 **Scoop (Windows):**

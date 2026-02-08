@@ -41,3 +41,15 @@ changelog:
       - "^docs:"
       - "^test:"
       - "^ci:"
+
+brews:
+  - repository:
+      owner: z1j1e
+      name: homebrew-porthog
+    homepage: "https://github.com/z1j1e/porthog"
+    description: "Cross-platform port management CLI — find what's hogging your ports"
+    license: "MIT"
+    install: |
+      bin.install "porthog"
+    test: |
+      system "#{bin}/porthog", "version"

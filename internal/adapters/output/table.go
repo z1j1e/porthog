@@ -18,17 +18,65 @@ var (
 )
 
 func (r *Renderer) renderTable(bindings []domain.PortBinding) error {
-	headers := []string{"PROTO", "LOCAL ADDRESS", "PID", "PROCESS", "USER", "STATE"}
-	widths := []int{5, 22, 8, 20, 15, 12}
+	tw := r.termWidth()
+
+	// Column definitions: name, minWidth, weight (for distributing extra space)
+	type col struct {
+		header string
+		min    int
+		weight int
+	}
+	cols := []col{
+		{"PROTO", 5, 0},
+		{"LOCAL ADDRESS", 15, 2},
+		{"PID", 7, 0},
+		{"PROCESS", 8, 3},
+		{"USER", 8, 2},
+		{"STATE", 6, 1},
+	}
+
+	// Calculate adaptive widths
+	gaps := (len(cols) - 1) * 2 // 2-char gap between columns
+	fixedMin := gaps
+	totalWeight := 0
+	for _, c := range cols {
+		fixedMin += c.min
+		totalWeight += c.weight
+	}
+
+	widths := make([]int, len(cols))
+	extra := tw - fixedMin
+	if extra < 0 {
+		extra = 0
+	}
+	for i, c := range cols {
+		widths[i] = c.min
+		if totalWeight > 0 && c.weight > 0 {
+			widths[i] += (extra * c.weight) / totalWeight
+		}
+	}
+
+	// Narrow mode: hide USER column if terminal < 80
+	showUser := tw >= 80
 
 	// Header
 	var hdr strings.Builder
-	for i, h := range headers {
-		hdr.WriteString(headerStyle.Width(widths[i]).Render(h))
-		hdr.WriteString("  ")
+	for i, c := range cols {
+		if i == 4 && !showUser {
+			continue
+		}
+		hdr.WriteString(headerStyle.Width(widths[i]).Render(c.header))
+		if i < len(cols)-1 {
+			hdr.WriteString("  ")
+		}
 	}
 	fmt.Fprintln(r.w, hdr.String())
-	fmt.Fprintln(r.w, strings.Repeat("─", 90))
+
+	sepWidth := tw
+	if sepWidth > 120 {
+		sepWidth = 120
+	}
+	fmt.Fprintln(r.w, strings.Repeat("─", sepWidth))
 
 	// Rows
 	for _, b := range bindings {
@@ -48,9 +96,22 @@ func (r *Renderer) renderTable(bindings []domain.PortBinding) error {
 			}
 		}
 
-		fmt.Fprintf(r.w, "%-7s %-24s %-8s %-22s %-17s %s\n",
-			proto, addr, pid, cellStyle.Render(truncate(name, 20)),
-			cellStyle.Render(truncate(user, 15)), b.State)
+		if showUser {
+			fmt.Fprintf(r.w, "%-*s  %-*s  %-*s  %-*s  %-*s  %s\n",
+				widths[0], proto,
+				widths[1], truncate(addr, widths[1]),
+				widths[2], pid,
+				widths[3], cellStyle.Render(truncate(name, widths[3])),
+				widths[4], cellStyle.Render(truncate(user, widths[4])),
+				truncate(string(b.State), widths[5]))
+		} else {
+			fmt.Fprintf(r.w, "%-*s  %-*s  %-*s  %-*s  %s\n",
+				widths[0], proto,
+				widths[1], truncate(addr, widths[1]),
+				widths[2], pid,
+				widths[3], cellStyle.Render(truncate(name, widths[3])),
+				truncate(string(b.State), widths[5]))
+		}
 	}
 	return nil
 }

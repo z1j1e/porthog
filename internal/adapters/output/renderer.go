@@ -5,6 +5,7 @@ import (
 	"os"
 
 	"github.com/mattn/go-isatty"
+	"golang.org/x/term"
 
 	"github.com/z1j1e/porthog/internal/core/domain"
 )
@@ -50,4 +51,15 @@ func (r *Renderer) resolveFormat() Format {
 		return FormatTable
 	}
 	return FormatPlain
+}
+
+// termWidth returns the terminal width, defaulting to 120 if detection fails.
+func (r *Renderer) termWidth() int {
+	if f, ok := r.w.(*os.File); ok {
+		w, _, err := term.GetSize(int(f.Fd()))
+		if err == nil && w > 0 {
+			return w
+		}
+	}
+	return 120
 }
